@@ -1,0 +1,3 @@
+# changeables
+PI_PORT = 8765
+PI_IP_ADDRESS = "192.168.0.234"
