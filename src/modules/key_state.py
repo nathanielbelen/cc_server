@@ -1,4 +1,4 @@
-from common.hid_writer import write_report
+from src.common.hid_writer import write_report
 from src.common.keyboard_dict import keyboard_dict
 
 class Key_State:
@@ -9,18 +9,41 @@ class Key_State:
         if key not in keyboard_dict:
             raise KeyError(f"Key '{key}' not found in keyboard_dict")
 
-        self.key_list.append(key)
+        if key not in self.key_list:  # Check if key is already in the list
+            self.key_list.append(key)
+
         self.send_report()
 
     def key_up(self, *keys_to_remove):
+        removed = False
         for key in keys_to_remove:
             while key in self.key_list:
+                removed = True
                 self.key_list.remove(key)
-        self.send_report()
+        if removed:
+            self.send_report()
 
     def key_release_all(self):
         self.key_list = []  # empty the key_list
         self.send_report()
+
+    def direction(self, key):
+        if key != 'RIGHT' and key != 'LEFT':
+            raise KeyError(f"Key '{key}' not a directional key")
+
+        required_send = False
+
+        for direction in ['RIGHT', 'LEFT']:
+            while direction in self.key_list and direction != key:
+                self.key_list.remove(key)
+                required_send = True
+
+        if key not in self.key_list:  # Check if key is already in the list
+            self.key_list.append(key)
+            required_send = True
+
+        if required_send:
+            self.send_report()
 
     def send_report(self):
         # format of report:

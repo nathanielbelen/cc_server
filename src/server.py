@@ -2,30 +2,43 @@
 # invoke in main
 # respond to queries with keystate
 
-from modules.key_state import Key_State
+from src.modules.key_state import Key_State
 from src.common.keyboard_dict import keyboard_dict
 from config import PI_IP_ADDRESS, PI_PORT
 import asyncio
 import time
+import random
 import websockets
 
 key_state = Key_State()
 
 async def server(websocket):
-    async for command in websocket:
-        action, key = parse_input(command)
-        if action == "down" or action == "up":
-            if key in keyboard_dict:
-                if action == "down":
-                    key_state.key_down(key)
+    try:
+        async for command in websocket:
+            action, key = parse_input(command)
+            if action == "down" or action == "up" or action == "quick" or action == "direction":
+                if key in keyboard_dict:
+                    if action == "down":
+                        key_state.key_down(key)
+                    elif action == "up":
+                        key_state.key_up(key)
+                    elif action == "quick":
+                        # is this blocking behavior bad?
+                        key_state.key_down(key)
+                        time.sleep(random.uniform(0.075, 0.85))
+                        key_state.key_up(key)
+                    elif action == "direction":
+                        key_state.direction(key)
                 else:
-                    key_state.key_up(key)
+                    print("Invalid key")
+            elif action == "release":
+                key_state.key_release_all()
             else:
-                print("Invalid key")
-        elif action == "release":
-            key_state.key_release_all()
-        else:
-            print("Invalid command")
+                print("Invalid command")
+    except websockets.exceptions.ConnectionClosedError as e:
+        print(f"Connection closed with error: {e}")
+    except ConnectionResetError as e:
+        print(f"Connection reset by peer: {e}")
 
 async def start_server():
     print("Running WebSocket server")
@@ -50,6 +63,10 @@ def parse_input(input_str):
     if action == "down" and len(words) > 1:
         key = words[1]
     elif action == "up" and len(words) > 1:
+        key = words[1]
+    elif action == "quick" and len(words) > 1:
+        key = words[1]
+    elif action == "direction" and len(words) > 1:
         key = words[1]
     elif action != "release":
         return "Invalid", None
