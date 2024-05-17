@@ -1,15 +1,17 @@
 from src.common.hid_writer import write_report
 from src.common.keyboard_dict import keyboard_dict
+import time
 
 class Key_State:
     def __init__(self):
         self.key_list = []
+        self.time_last = time.time()
 
     def key_down(self, key):
         if key not in keyboard_dict:
             raise KeyError(f"Key '{key}' not found in keyboard_dict")
 
-        if key not in self.key_list:  # Check if key is already in the list
+        if key not in self.key_list:  # check if key is already in the list
             self.key_list.append(key)
 
         self.send_report()
@@ -34,11 +36,12 @@ class Key_State:
         required_send = False
 
         for direction in ['RIGHT', 'LEFT']:
-            while direction in self.key_list and direction != key:
-                self.key_list.remove(key)
-                required_send = True
+            if direction != key:
+                if direction in self.key_list:
+                    self.key_list.remove(direction)
+                    required_send = True
 
-        if key not in self.key_list:  # Check if key is already in the list
+        if key not in self.key_list:  # check if key is already in the list
             self.key_list.append(key)
             required_send = True
 
@@ -50,7 +53,10 @@ class Key_State:
         # write_report(NULL_CHAR*2+chr(4)+NULL_CHAR*5)
         # MODIFIER | NULL_CHAR | 6X KEYS
         # when empty, send NULL_CHAR*8
-        print(self.key_list)
+        if self.key_list:
+            curr_time = time.time()
+            print(f"{round(curr_time - self.time_last, 4)}s - {self.key_list}")
+            self.time_last = curr_time
         report = generate_report(self.key_list)
         write_report(report)
 
