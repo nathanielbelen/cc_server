@@ -3,7 +3,7 @@
 # respond to queries with keystate
 
 from src.modules.key_state import Key_State
-from src.common.keyboard_dict import keyboard_dict
+from src.common.keyboard_dict import keyboard_dict, modifier_dict
 from config import PI_IP_ADDRESS, PI_PORT
 import asyncio
 import time
@@ -17,7 +17,7 @@ async def server(websocket):
         async for command in websocket:
             action, key = parse_input(command)
             if action == "down" or action == "up" or action == "direction":
-                if key in keyboard_dict:
+                if key in keyboard_dict or key in modifier_dict:
                     if action == "down":
                         key_state.key_down(key)
                     elif action == "up":

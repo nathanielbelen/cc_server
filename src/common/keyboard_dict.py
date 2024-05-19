@@ -79,3 +79,19 @@ keyboard_dict = {
     'DOWN': chr(81),
     'UP': chr(82)
 }
+
+modifier_dict = {
+    'CTRL': chr(1),
+    'SHIFT': chr(2),
+    'ALT': chr(4),
+}
+
+
+# LCTRL  0x01
+# LSHIFT 0x02
+# LALT   0x04
+# LMETA  0x08
+# RCTRL  0x10
+# RSHIFT 0x20
+# RALT   0x40
+# RMETA  0x80
